@@ -5,7 +5,7 @@ from tqdm import tqdm
 import os
 
 class VideoBrightnessTracker:
-    def __init__(self, video_path, n_pixels=10, sample_rate=1):
+    def __init__(self, video_path, n_pixels=100, sample_rate=1):
         self.video_path = video_path
         self.n_pixels = n_pixels
         self.sample_rate = sample_rate
