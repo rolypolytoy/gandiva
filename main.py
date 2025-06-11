@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
 
-class VideoBrightnessTracker:
+class RHEED:
     def __init__(self, video_path, n_pixels=100, sample_rate=1):
         self.video_path = video_path
         self.n_pixels = n_pixels
@@ -15,13 +15,13 @@ class VideoBrightnessTracker:
     def analyze(self):
         cap = cv2.VideoCapture(self.video_path)
         if not cap.isOpened():
-            raise ValueError(f"Could not open video file: {self.video_path}")
+            raise ValueError(f"Couldn't load {self.video_path}")
         
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
         frame_count = 0
-        pbar = tqdm(total=total_frames//self.sample_rate, desc="Processing frames")
+        pbar = tqdm(total=total_frames//self.sample_rate, desc="Processing:")
         
         while True:
             ret, frame = cap.read()
@@ -59,6 +59,6 @@ class VideoBrightnessTracker:
 
 if __name__ == "__main__":
     video_path = "video.mp4"
-    tracker = VideoBrightnessTracker(video_path, n_pixels=100, sample_rate=1)
+    tracker = RHEED(video_path, n_pixels=100, sample_rate=1)
     tracker.analyze()
     tracker.plot()
