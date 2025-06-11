@@ -59,6 +59,6 @@ class VideoBrightnessTracker:
 
 if __name__ == "__main__":
     video_path = "video.mp4"
-    tracker = VideoBrightnessTracker(video_path, n_pixels=10, sample_rate=1)
+    tracker = VideoBrightnessTracker(video_path, n_pixels=100, sample_rate=1)
     tracker.analyze()
     tracker.plot()
