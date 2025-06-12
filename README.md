@@ -15,7 +15,7 @@ The software outputs the following plot (via matplotlib):
 The trademark oscillations of RHEED are clearly visible, and this generated at around ~80 frames/second, which means it's fast enough for real-time. Adding support for analysis while video is being streamed is trivial to do, and automatic waveform analysis (for layer counting) is trivial to do on top of this.
 
 # Installation and Usage
-Open the script in main.py, put the video file in the same repository, modify the script to have your filename as its input, and run. You need to have a Python version >3.8 as well as install the following libraries via pip:
+Open the script in main.py, put the video file in the same repository, modify the script to have your filename as its input, and run. You need to have [Python](https://www.python.org/downloads/) (>3.8) as well as install the following libraries via pip:
 ```
 pip install opencv-python matplotlib tqdm numpy
 ```
