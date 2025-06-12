@@ -21,7 +21,7 @@ class RHEED:
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
         frame_count = 0
-        pbar = tqdm(total=total_frames//self.sample_rate, desc="Processing:")
+        pbar = tqdm(total=total_frames//self.sample_rate, desc="Processing video")
         
         while True:
             ret, frame = cap.read()
