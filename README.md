@@ -21,3 +21,6 @@ pip install opencv-python matplotlib tqdm numpy
 ```
 
 Good luck!
+
+# License
+This code uses the GNU All-Permissive license, so there are literally no restrictions on what you can use this for, and there's no requirement that derivative works adhere to any licensing schema. This code is yours as much, if not more, than it is mine.
