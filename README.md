@@ -6,7 +6,7 @@ Since the peak 'brightness' of RHEED oscillates, reaching its peaks when new lay
 
 # Example
 
-Using this video of RHEED footage:
+Using this video of RHEED footage as the input:
 ![gif](https://github.com/user-attachments/assets/f09e0b12-95b8-45f5-ab7b-db17d02f7f3e)
 
 The software outputs the following plot (via matplotlib):
