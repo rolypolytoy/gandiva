@@ -6,3 +6,18 @@ Since the peak 'brightness' of RHEED oscillates, reaching its peaks when new lay
 
 # Example
 
+Using this video of RHEED footage:
+![gif](https://github.com/user-attachments/assets/f09e0b12-95b8-45f5-ab7b-db17d02f7f3e)
+
+The software outputs the following plot (via matplotlib):
+![plot](https://github.com/user-attachments/assets/0b54f231-cf61-464e-8504-f8adc9b9da7e)
+
+The trademark oscillations of RHEED are clearly visible, and this generated at around ~80 frames/second, which, for a 30FPS video like the footage was, means it's fast enough for real-time. 
+
+# Installation and Usage
+Open the script in main.py, put the video file in the same repository, modify the script to have your filename as its input, and run. You need to have a Python version >3.8 as well as install the following libraries via pip:
+```
+pip install opencv-python matplotlib tqdm numpy
+```
+
+Good luck!
