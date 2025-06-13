@@ -3,6 +3,7 @@ import numpy as np
 import sys
 from tqdm import tqdm
 from scipy.signal import find_peaks, savgol_filter
+from scipy import ndimage
 import os
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                                QWidget, QPushButton, QFileDialog, QLabel, QDoubleSpinBox, QComboBox, QSplashScreen)
@@ -14,6 +15,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import json
+
+
 
 class SplashScreen(QSplashScreen):
     splash_finished = Signal()
@@ -114,6 +117,7 @@ class LiveAnalysisThread(QThread):
         self.running = True
         import time
         self.start_time = time.time()
+        frame_counter = 0
         
         while self.running:
             if not self.paused:
@@ -121,18 +125,27 @@ class LiveAnalysisThread(QThread):
                 if not ret:
                     continue
                 
-                if len(frame.shape) == 3:
-                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                else:
-                    gray = frame.copy()
-                
-                flat_image = gray.flatten()
-                top_n_indices = np.argpartition(flat_image, -100)[-100:]
-                brightness = np.mean(flat_image[top_n_indices])
-                
-                current_time = time.time() - self.start_time
-                self.new_data_point.emit(current_time, brightness)
-                self.frame_count += 1
+                frame_counter += 1
+                if frame_counter % 4 == 0:
+                    if len(frame.shape) == 3:
+                        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    else:
+                        gray = frame.copy()
+                    
+                    flat_image = gray.flatten()
+                    top_100_indices = np.argpartition(flat_image, -100)[-100:]
+                    top_intensity = np.mean(flat_image[top_100_indices])
+                    
+                    p10 = np.percentile(flat_image, 10)
+                    p90 = np.percentile(flat_image, 90)
+                    background_mask = (flat_image >= p10) & (flat_image <= p90)
+                    background_intensity = np.mean(flat_image[background_mask])
+                    
+                    brightness = top_intensity / background_intensity if background_intensity > 0 else 1.0
+                    
+                    current_time = time.time() - self.start_time
+                    self.new_data_point.emit(current_time, brightness)
+                    self.frame_count += 1
                 
             time.sleep(1.0 / fps)
         
@@ -147,6 +160,7 @@ class LiveAnalysisThread(QThread):
     
     def resume(self):
         self.paused = False
+
 class AnalysisThread(QThread):
     progress = Signal(int)
     finished = Signal()
@@ -170,17 +184,25 @@ class AnalysisThread(QThread):
             if not ret:
                 break
             
-            if len(frame.shape) == 3:
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            else:
-                gray = frame.copy()
-            
-            flat_image = gray.flatten()
-            top_n_indices = np.argpartition(flat_image, -100)[-100:]
-            brightness = np.mean(flat_image[top_n_indices])
-            
-            self.analyzer.time_points.append(frame_count / fps)
-            self.analyzer.brightness_values.append(brightness)
+            if frame_count % 4 == 0:
+                if len(frame.shape) == 3:
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                else:
+                    gray = frame.copy()
+                
+                flat_image = gray.flatten()
+                top_100_indices = np.argpartition(flat_image, -100)[-100:]
+                top_intensity = np.mean(flat_image[top_100_indices])
+                
+                p10 = np.percentile(flat_image, 10)
+                p90 = np.percentile(flat_image, 90)
+                background_mask = (flat_image >= p10) & (flat_image <= p90)
+                background_intensity = np.mean(flat_image[background_mask])
+                
+                brightness = top_intensity / background_intensity if background_intensity > 0 else 1.0
+                
+                self.analyzer.time_points.append(frame_count / fps)
+                self.analyzer.brightness_values.append(brightness)
             
             frame_count += 1
             
@@ -192,8 +214,8 @@ class AnalysisThread(QThread):
         
         smoothed = savgol_filter(self.analyzer.brightness_values, window_length=11, polyorder=3)
         intensity_range = max(smoothed) - min(smoothed)
-        min_height = min(smoothed) + 0.1 * intensity_range
-        min_distance = int(len(smoothed) * 0.05)
+        min_height = min(smoothed) + 0.3 * intensity_range
+        min_distance = int(len(smoothed) * 0.1)
         
         self.analyzer.peaks, _ = find_peaks(smoothed, height=min_height, distance=min_distance)
         self.analyzer.peak_count = len(self.analyzer.peaks)
@@ -229,7 +251,14 @@ class PlotCanvas(FigureCanvas):
             cont, ind = self.line.contains(event)
             if cont:
                 x = self.analyzer.time_points[ind['ind'][0]]
-                y = (np.array(self.analyzer.brightness_values)[ind['ind'][0]] / 255.0) * 100
+                
+                smoothed = savgol_filter(self.analyzer.brightness_values, window_length=min(11, len(self.analyzer.brightness_values)), polyorder=3)
+                min_val = np.min(smoothed)
+                max_val = np.max(smoothed)
+                if max_val > min_val:
+                    y = ((smoothed[ind['ind'][0]] - min_val) / (max_val - min_val)) * 100
+                else:
+                    y = 50
                 
                 self.annotation.xy = (x, y)
                 self.annotation.set_text(f'Time: {x:.2f}s\nIntensity: {y:.1f}%')
@@ -243,14 +272,15 @@ class PlotCanvas(FigureCanvas):
         if len(self.analyzer.brightness_values) > 10:
             smoothed = savgol_filter(self.analyzer.brightness_values, window_length=min(11, len(self.analyzer.brightness_values)), polyorder=3)
             intensity_range = max(smoothed) - min(smoothed)
-            min_height = min(smoothed) + 0.1 * intensity_range
-            min_distance = max(1, int(len(smoothed) * 0.05))
+            min_height = min(smoothed) + 0.3 * intensity_range
+            min_distance = max(1, int(len(smoothed) * 0.1))
             
             peaks, _ = find_peaks(smoothed, height=min_height, distance=min_distance)
             self.analyzer.peaks = peaks
             self.analyzer.peak_count = len(peaks)
         
         self.plot_data(self.analyzer)
+    
     def plot_data(self, analyzer):
         self.analyzer = analyzer
         self.ax.clear()
@@ -259,7 +289,13 @@ class PlotCanvas(FigureCanvas):
             return
         
         smoothed = savgol_filter(analyzer.brightness_values, window_length=min(11, len(analyzer.brightness_values)), polyorder=3)
-        smoothed_normalized = (smoothed / 255.0) * 100
+        
+        min_val = np.min(smoothed)
+        max_val = np.max(smoothed)
+        if max_val > min_val:
+            smoothed_normalized = ((smoothed - min_val) / (max_val - min_val)) * 100
+        else:
+            smoothed_normalized = smoothed * 0 + 50
         
         self.line, = self.ax.plot(analyzer.time_points, smoothed_normalized, 
                                  linewidth=2, color='#1f3a93', picker=True, pickradius=5)
@@ -268,6 +304,7 @@ class PlotCanvas(FigureCanvas):
         self.ax.set_xlabel('Time (s)', fontsize=14)
         self.ax.set_ylabel('Intensity (%)', fontsize=14)
         self.ax.grid(True, alpha=0.3)
+        self.ax.set_ylim(0, 100)
         
         if len(analyzer.time_points) > 100:
             self.ax.set_xlim(max(0, max(analyzer.time_points) - 60), max(analyzer.time_points))
