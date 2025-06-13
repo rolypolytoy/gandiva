@@ -1,26 +1,23 @@
 ## Gandiva
 
-Gandiva is a tool that automatically analyzes [RHEED](https://www.sciencedirect.com/topics/materials-science/reflection-high-energy-electron-diffraction#:~:text=In%20subject%20area%3A%20Materials%20Science,roughness%20in%20epitaxial%20thin%20films), a nanocharacterization method used to monitor film growth in molecular beam epitaxy systems. It's open-sourced and uses a tremendously simple heuristic to calculate the rate of crystal growth.
+Gandiva is a tool for use in Molecular Beam Epitaxy systems (MBE) outfitted with RHEED (reflective high energy electron diffraction), a method of in-situ crystal monitoring. It can parse video footage- either pre-recorded or in real-time- and generate waveforms based on visual input from RHEED. What this means is, with only a camera, you can digitize your RHEED data, and:
 
-Since the peak 'brightness' of RHEED oscillates, reaching its peaks when new layers are empty and at their troughs when 50% completion of a layer exists, having a method of automatically analyzing and analyzing the information is important. Gandiva uses a simple heuristic- it turns the video to grayscale (from 0 to 255 in brightness), finds the 100 brightest pixels in the frame, averages their brightness, and graphs it with relation to time. It's fast enough to be real time (>60 frames per second on a laptop with OpenCV), and can be made significantly faster by simply having it check once every 2, 5, or 10 frames rather than every frame, increasing in speed by the same factor.
+- Get waveforms generated with respect to time, for real-time analysis of crystal layer growth.
+- Observe how many layers are made, the thickness of the film, and the growth rate per hour, simply by inputting the lattice constant of your material, and allowing it to run unopposed.
+- Export and import data to and from the app, in .json/.csv, and as images.
 
-# Example
+It has a sleek interface with QT's Python bindings, uses OpenCV for >100FPS analysis speeds on most devices, and has an integration with Matplotlib to provide graphs that don't look out of place from a publication. It also uses the GNU All-Permissive License so you can genuinely modify it in any manner possible, beyond what's allowed in most open-source licenses. That license is just 'I'm putting a license here so you know I forfeit my right to a license' and it basically means you can modify it, use it commercially or noncommercially and there's no obligation that any derivatives are open source as well.
 
-Using this video of RHEED footage as the input:
-![gif](https://github.com/user-attachments/assets/f09e0b12-95b8-45f5-ab7b-db17d02f7f3e)
+# Interface
 
-The software outputs the following plot (via matplotlib):
-![plot](https://github.com/user-attachments/assets/0b54f231-cf61-464e-8504-f8adc9b9da7e)
+If you upload the following video to Gandiva:
+![gif](https://github.com/user-attachments/assets/e0a8ad34-410c-4c5a-8964-71d7224bcf7f)
 
-The trademark oscillations of RHEED are clearly visible, and this generated at around ~80 frames/second, which means it's fast enough for real-time. Adding support for analysis while video is being streamed is trivial to do, and automatic waveform analysis (for layer counting) is trivial to do on top of this.
+The user interface displays this:
+![image](https://github.com/user-attachments/assets/a21790e9-2d73-4c28-8338-d9f0d3396228)
 
-# Installation and Usage
-Open the script in main.py, put the video file in the same repository, modify the script to have your filename as its input, and run. You need to have [Python](https://www.python.org/downloads/) (>3.8) as well as install the following libraries via pip:
-```
-pip install opencv-python matplotlib tqdm numpy
-```
+It can also provide real-time analysis with the 'Start Live' tool. Make sure to select the correct camera device for it, since there may be multiple.
 
-Good luck!
+# Installation
 
-# License
-This code uses the [GNU All-Permissive License](https://www.gnu.org/prep/maintain/html_node/License-Notices-for-Other-Files.html), so there are no restrictions on what you can use this for, and there's no requirement that derivative works adhere to any licensing schema. This code is yours as much as it is mine.
+Download [Gandiva.exe](https://github.com/rolypolytoy/gandiva/releases/tag/v1.0.0) from the releases page, run it, and don't delete the Gandiva shortcut on your Desktop. 
