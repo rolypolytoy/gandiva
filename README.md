@@ -21,3 +21,11 @@ Sinusoidal behavior is very clearly visible from this and we can see it accurate
 # Installation
 
 Download [Gandiva.exe](https://github.com/rolypolytoy/gandiva/releases/tag/v1.0.0) from the releases page, run it, and don't delete the Gandiva shortcut on your Desktop. 
+
+# Algorithm
+
+Most RHEED-parsing algorithms are either slow, operate predominantly on images and not video, are too slow for real-time rendering, or use complex computer vision algorithms which require careful tuning. The algorithm implemented here is a bespoke solution that's robust to varying initial conditions, uses no neural networks (entirely heuristic-based), and is extremely performant (>1000% faster than needed for real-time). 
+
+I call the algorithm INterDecile Rank Averaging (INDRA), because it takes the average intensity of all the pixels between the 10th and 90th percentile of brightness, averages their intensity, calculates the average intensity of the top 100 pixels, and calculates the intensity differential between them as the metric for how bright the RHEED diffraction spot is when compared to the baseline intensity of the null spots. We also use SciPy's state of the art waveform detection to automatically detect the number of discrete oscillations, and we have some digital signals processing to smooth out some of the rougher details. 
+
+Our solution's a lot more easily modifiable, significantly faster, comparably performant, and qualitatively different from finding a region of interest, or other conventional methods for RHEED analysis.
