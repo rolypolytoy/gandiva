@@ -1,6 +1,6 @@
-opencv-python==4.8.1.78
-numpy==1.24.3
-scipy==1.11.4
-PySide6==6.6.0
-matplotlib==3.7.2
-tqdm==4.66.1
+opencv-python
+numpy
+scipy
+PySide6
+matplotlib
+tqdm
