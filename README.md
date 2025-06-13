@@ -14,9 +14,9 @@ If you upload the following video to Gandiva:
 ![gif](https://github.com/user-attachments/assets/e0a8ad34-410c-4c5a-8964-71d7224bcf7f)
 
 The user interface displays this:
-![image](https://github.com/user-attachments/assets/44d9289c-7aec-4347-aeb4-22ca43e5c237)
+![image](https://github.com/user-attachments/assets/007f6fb4-4b3b-454d-9b32-d7f940f57f6c)
 
-Sinusoidal behavior is very clearly visible from this. It can also provide real-time analysis with the 'Start Live' tool. Make sure to select the correct camera device for it, since there may be multiple.
+Sinusoidal behavior is very clearly visible from this and we can see it accurately tracks the three peaks. It can also provide real-time analysis with the 'Start Live' tool. Make sure to select the correct camera device for it, since there may be multiple.
 
 # Installation
 
