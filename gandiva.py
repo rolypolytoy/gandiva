@@ -3,7 +3,7 @@ import numpy as np
 import sys
 from tqdm import tqdm
 from scipy.signal import find_peaks, savgol_filter
-from scipy import ndimage
+from scipy import ndimage, signal
 import os
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                                QWidget, QPushButton, QFileDialog, QLabel, QDoubleSpinBox, QComboBox, QSplashScreen)
@@ -16,6 +16,34 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 import json
 
+
+def count_rheed_oscillations(brightness_values, time_points):
+    if len(brightness_values) < 20:
+        return 0
+    
+    detrended = signal.detrend(brightness_values, type='linear')
+    
+    window_length = min(21, len(detrended)//4)
+    if window_length % 2 == 0:
+        window_length += 1
+    if window_length < 5:
+        window_length = 5
+    
+    smoothed = savgol_filter(detrended, window_length=window_length, polyorder=3)
+    
+    sign_changes = np.diff(np.sign(smoothed))
+    zero_crossings = np.where(sign_changes != 0)[0]
+    
+    min_separation = 10
+    filtered_crossings = []
+    last_crossing = -min_separation
+    
+    for crossing in zero_crossings:
+        if crossing - last_crossing >= min_separation:
+            filtered_crossings.append(crossing)
+            last_crossing = crossing
+    
+    return len(filtered_crossings) // 2
 
 
 class SplashScreen(QSplashScreen):
@@ -212,13 +240,10 @@ class AnalysisThread(QThread):
         
         cap.release()
         
-        smoothed = savgol_filter(self.analyzer.brightness_values, window_length=11, polyorder=3)
-        intensity_range = max(smoothed) - min(smoothed)
-        min_height = min(smoothed) + 0.3 * intensity_range
-        min_distance = int(len(smoothed) * 0.1)
-        
-        self.analyzer.peaks, _ = find_peaks(smoothed, height=min_height, distance=min_distance)
-        self.analyzer.peak_count = len(self.analyzer.peaks)
+        self.analyzer.peak_count = count_rheed_oscillations(
+            self.analyzer.brightness_values, 
+            self.analyzer.time_points
+        )
         
         self.finished.emit()
 
@@ -269,15 +294,11 @@ class PlotCanvas(FigureCanvas):
                 self.draw_idle()
     
     def add_live_data_point(self, time_point, brightness):
-        if len(self.analyzer.brightness_values) > 10:
-            smoothed = savgol_filter(self.analyzer.brightness_values, window_length=min(11, len(self.analyzer.brightness_values)), polyorder=3)
-            intensity_range = max(smoothed) - min(smoothed)
-            min_height = min(smoothed) + 0.3 * intensity_range
-            min_distance = max(1, int(len(smoothed) * 0.1))
-            
-            peaks, _ = find_peaks(smoothed, height=min_height, distance=min_distance)
-            self.analyzer.peaks = peaks
-            self.analyzer.peak_count = len(peaks)
+        if len(self.analyzer.brightness_values) > 20:
+            self.analyzer.peak_count = count_rheed_oscillations(
+                self.analyzer.brightness_values, 
+                self.analyzer.time_points
+            )
         
         self.plot_data(self.analyzer)
     
@@ -587,15 +608,11 @@ class RHEED(QMainWindow):
         self.time_points.append(time_point)
         self.brightness_values.append(brightness)
         
-        if len(self.brightness_values) > 10:
-            smoothed = savgol_filter(self.brightness_values, window_length=min(11, len(self.brightness_values)), polyorder=3)
-            intensity_range = max(smoothed) - min(smoothed)
-            min_height = min(smoothed) + 0.1 * intensity_range
-            min_distance = max(1, int(len(smoothed) * 0.05))
-            
-            peaks, _ = find_peaks(smoothed, height=min_height, distance=min_distance)
-            self.peaks = peaks
-            self.peak_count = len(peaks)
+        if len(self.brightness_values) > 20:
+            self.peak_count = count_rheed_oscillations(
+                self.brightness_values, 
+                self.time_points
+            )
         
         self.canvas.add_live_data_point(time_point, brightness)
         self.update_info_display()
