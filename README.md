@@ -6,6 +6,8 @@ Gandiva is a tool for use in Molecular Beam Epitaxy systems (MBE) outfitted with
 - Observe how many layers are made, the thickness of the film, and the growth rate per hour, simply by inputting the lattice constant of your material, and allowing it to run unopposed.
 - Export and import data to and from the app, in .json/.csv, and as images.
 
+It's currently in use in DRDO's [SSPL](https://www.drdo.gov.in/drdo/labs-and-establishments/solid-state-physics-laboratory-sspl), an MBE lab with III-V and II-VI fabrication facilities, as their RHEED software of choice.
+
 It has a sleek interface with QT's Python bindings, uses OpenCV for >100FPS analysis speeds on most devices, and has an integration with Matplotlib to provide graphs that don't look out of place from a publication. It also uses the GNU All-Permissive License so you can genuinely modify it in any manner possible, beyond what's allowed in most open-source licenses. That license is just 'I'm putting a license here so you know I forfeit my right to a license' and it basically means you can modify it, use it commercially or noncommercially and there's no obligation that any derivatives are open source as well.
 
 ## Interface
